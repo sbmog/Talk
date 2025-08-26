@@ -1,33 +1,25 @@
 package version02;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class TalkClient {
     public static void main(String[] args) throws IOException {
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+        Socket socket = new Socket("LocalHost", 12080);
 
-        Socket clientSocket = new Socket("LocalHost", 12080);
-        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        RecieverTråd reciever = new RecieverTråd(socket);
+        SenderTråd sender = new SenderTråd(socket);
 
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        reciever.start();
+        sender.start();
 
-        while (true) {
-            // clientSocket.isConnected();
-
-            String sentence = inFromUser.readLine();
-            outToServer.writeBytes(sentence + '\n');
-
-            String fromServer = inFromServer.readLine();
-            System.out.println("From other client: " + fromServer);
+        try {
+            reciever.join();
+            sender.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
-//        clientSocket.close();
-
     }
 }
 

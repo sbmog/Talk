@@ -1,9 +1,6 @@
 package version02;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,19 +12,19 @@ public class TalkServer {
 
         Socket connectionSocket = welcomeSocket.accept();
 
-        BufferedReader toClient = new BufferedReader(new InputStreamReader(System.in));
-        BufferedReader fromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-        DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         System.out.println("Forbundet");
 
-        while (true) {
-            String clientSentence = fromClient.readLine();
-            System.out.println("From original client: " + clientSentence);
+        RecieverTråd reciever = new RecieverTråd(connectionSocket);
+        SenderTråd sender = new SenderTråd(connectionSocket);
 
-            String toClientSentence = toClient.readLine();
+        reciever.start();
+        sender.start();
 
-            outToClient.writeBytes(toClientSentence+'\n');
+        try {
+            reciever.join();
+            sender.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
     }
 }
