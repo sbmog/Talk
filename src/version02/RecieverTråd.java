@@ -14,13 +14,13 @@ public class RecieverTråd extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            try (BufferedReader inFromOther = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));) {
-                String fromServer = inFromOther.readLine();
+        try (BufferedReader inFromOther = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));) {
+            String fromServer;
+            while ((fromServer = inFromOther.readLine()) != null) {
                 System.out.println("From other client: " + fromServer);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

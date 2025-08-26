@@ -15,15 +15,15 @@ public class SenderTråd extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            try (BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-                 DataOutputStream outToOther = new DataOutputStream(connectionSocket.getOutputStream());
-            ) {
-                String sentence = inFromUser.readLine();
+        try (BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+             DataOutputStream outToOther = new DataOutputStream(connectionSocket.getOutputStream());
+        ) {
+            String sentence;
+            while ((sentence = inFromUser.readLine()) != null) {
                 outToOther.writeBytes(sentence + '\n');
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
