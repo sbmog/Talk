@@ -10,4 +10,14 @@ public class ClientInfo {
         this.ip = ip;
         this.port = port;
     }
+
+
+    @Override
+    public String toString() {
+        return "ClientInfo{" +
+                "Kaldenavn: '" + name + '\'' +
+                ", IP: '" + ip + '\'' +
+                ", port: " + port +
+                '}';
+    }
 }
