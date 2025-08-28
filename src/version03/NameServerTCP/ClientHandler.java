@@ -40,6 +40,14 @@ public class ClientHandler extends Thread {
                         }
                     }
                     out.writeBytes("END_OF_LIST\n");
+                } else if (parts[0].equalsIgnoreCase("CONNECT") && parts.length == 2) {
+                    String ip = clients.get(parts[1]);
+                    if(ip != null) {
+                        out.writeBytes("CONNECT_IP" + ip + "\n");
+                    } else {
+                        out.writeBytes("Ingen klient med navn: " + parts[1] + "\n");
+                    }
+
                 } else {
                     out.writeBytes("Ugyldig kommando. Brug REGISTER eller LIST\n");
                 }
