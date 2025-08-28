@@ -25,6 +25,8 @@ public class TalkClient {
         port = 12080;
         Socket socket = new Socket(ip, port);
 
+        System.out.println("Forbundet til anden client. ");
+
         RecieverTråd reciever = new RecieverTråd(socket);
         SenderTråd sender = new SenderTråd(socket);
 
