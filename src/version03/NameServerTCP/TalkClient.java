@@ -11,7 +11,7 @@ public class TalkClient {
         String serverNavn = console.readLine();
         int port = 13000;
 
-        Socket dnsSocket = new Socket("LocalHost", port);
+        Socket dnsSocket = new Socket("Localhost", port);
 
         DataOutputStream dnsOut = new DataOutputStream(dnsSocket.getOutputStream());
         BufferedReader dnsIn = new BufferedReader(new InputStreamReader(dnsSocket.getInputStream()));

@@ -12,7 +12,7 @@ public class NameServer {
 
     public static void main(String[] args) throws IOException {
         dnsNavne.put("LOCAL".toLowerCase(), "localhost");
-        dnsNavne.put("server2".toLowerCase(), "192.168.1.50");
+        dnsNavne.put("Sidse".toLowerCase(), "10.10.131.181");
 
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("DNS server started på port: " + port);
