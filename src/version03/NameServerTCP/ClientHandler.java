@@ -27,9 +27,11 @@ public class ClientHandler extends Thread {
             while ((line = in.readLine()) != null) {
                 String[] parts = line.split(" ");
 
-                if (parts[0].equalsIgnoreCase("REGISTRER") && parts.length == 3) {
-                    clients.put(parts[1], parts[2]);         //Rigtig formateret, og tilføjet til map.
-                    out.writeBytes("Registreret: " + parts[1] + " -> " + parts[2] + "\n");
+                if (parts[0].equalsIgnoreCase("REGISTRER") && parts.length == 2) {
+                    String kaldeNavn = parts[1];
+                    String ip = socket.getInetAddress().getHostAddress();
+                    clients.put(kaldeNavn,ip);         //Rigtig formateret, og tilføjet til map.
+                    out.writeBytes("Registreret: " + kaldeNavn + " -> " + ip + "\n");
 
                 } else if (parts[0].equalsIgnoreCase("LIST")) {
                     synchronized (clients) {         //kun en tråd kan køre ad gangen.
