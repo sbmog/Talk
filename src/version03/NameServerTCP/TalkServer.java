@@ -7,7 +7,9 @@ import java.net.Socket;
 public class TalkServer {
     public static void main(String[] args) throws IOException {
 
-        ServerSocket welcomeSocket = new ServerSocket(12080);
+        int port = 12080;
+
+        ServerSocket welcomeSocket = new ServerSocket(port);
         System.out.println("Venter på ack");
 
         Socket connectionSocket = welcomeSocket.accept();
