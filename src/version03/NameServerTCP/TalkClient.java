@@ -1,42 +1,25 @@
 package version03.NameServerTCP;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.Socket;
 
 public class TalkClient {
-    private String nickname;
-    private String ip; // hardkodet IP
-    private String serverHost;
-    private int serverPort;
+    public static void main(String[] args) throws IOException {
 
-    public TalkClient(String nickname, String ip, String serverHost, int serverPort) {
-        this.nickname = nickname;
-        this.ip = ip;
-        this.serverHost = serverHost;
-        this.serverPort = serverPort;
-    }
+        Socket socket = new Socket("LocalHost", 12080);
 
-    public void start() throws IOException {
-        Socket socket = new Socket(serverHost, serverPort);
-        System.out.println("Forbundet til navneserver: " + serverHost);
-
-        // Start tråde til at sende og modtage beskeder
         RecieverTråd reciever = new RecieverTråd(socket);
         SenderTråd sender = new SenderTråd(socket);
 
-        sender.start();
         reciever.start();
+        sender.start();
 
         try {
-            sender.join();
             reciever.join();
+            sender.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
-
-    public static void main(String[] args) throws IOException {
-        TalkClient client = new TalkClient("Alice", "localhost", "localhost", 12080);
-        client.start();
-    }
 }
+

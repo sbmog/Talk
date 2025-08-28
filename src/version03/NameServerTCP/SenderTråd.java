@@ -1,26 +1,29 @@
-    package version03.NameServerTCP;
-    import java.io.*;
-    import java.net.Socket;
+package version03.NameServerTCP;
 
-    public class SenderTråd extends Thread {
-        private Socket socket;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 
-        public SenderTråd(Socket socket) {
-            this.socket = socket;
-        }
+public class SenderTråd extends Thread {
+    Socket connectionSocket;
 
-        @Override
-        public void run() {
-            try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+    public SenderTråd(Socket connectionSocket) {
+        this.connectionSocket = connectionSocket;
+    }
 
-                String line;
-                while ((line = userInput.readLine()) != null) {
-                    out.writeBytes(line + "\n");
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+    @Override
+    public void run() {
+        try (BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+             DataOutputStream outToOther = new DataOutputStream(connectionSocket.getOutputStream());
+        ) {
+            String sentence;
+            while ((sentence = inFromUser.readLine()) != null) {
+                outToOther.writeBytes(sentence + '\n');
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
+}

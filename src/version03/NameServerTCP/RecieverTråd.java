@@ -1,23 +1,26 @@
 package version03.NameServerTCP;
-import java.io.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class RecieverTråd extends Thread {
-    private Socket socket;
+    Socket connectionSocket;
 
-    public RecieverTråd(Socket socket) {
-        this.socket = socket;
+    public RecieverTråd(Socket connectionSocket) {
+        this.connectionSocket = connectionSocket;
     }
 
     @Override
     public void run() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
+        try (BufferedReader inFromOther = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));) {
+            String fromServer;
+            while ((fromServer = inFromOther.readLine()) != null) {
+                System.out.println("From other client: " + fromServer);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

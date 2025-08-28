@@ -3,37 +3,28 @@ package version03.NameServerTCP;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TalkServer {
-    private int port;
-    private Map<String, String> klienter = Collections.synchronizedMap(new HashMap<>());
+    public static void main(String[] args) throws IOException {
 
-    public TalkServer(int port) {
-        this.port = port;
-    }
+        ServerSocket welcomeSocket = new ServerSocket(12080);
+        System.out.println("Venter på ack");
 
-    public void start() {
-      klienter.put("TRISTAN", "127,0,0,1");
+        Socket connectionSocket = welcomeSocket.accept();
 
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("TalkServer kører på port " + port);
+        System.out.println("Forbundet");
 
-            while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("Klient forbundet: " + socket.getInetAddress());
+        RecieverTråd reciever = new RecieverTråd(connectionSocket);
+        SenderTråd sender = new SenderTråd(connectionSocket);
 
-                // Start tråde for klienten
-                new ClientHandler(socket, klienter).start();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        reciever.start();
+        sender.start();
+
+        try {
+            reciever.join();
+            sender.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    public static void main(String[] args) {
-        new TalkServer(12080).start();
     }
 }
