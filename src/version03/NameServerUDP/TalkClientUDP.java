@@ -4,64 +4,43 @@ import java.io.*;
 import java.net.*;
 
 public class TalkClientUDP {
-    public static void main(String[] args) throws IOException {
+    private static final int NAME_SERVER_PORT = 13000;
+    private static final int DEFAULT_CHAT_PORT = 12080;
+    private static final int BUFFER_SIZE = 256;
+
+    public static void main(String[] args) throws IOException, InterruptedException {
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-        int dnsPort = 13000;
-        int chatPort = 12080;
+        DatagramSocket udpSocket = new DatagramSocket();
 
-        System.out.print("Indtast kaldenavn (fx 'local' eller 'sidse'): ");
-        String kaldenavn = console.readLine().toLowerCase();
+        // 1. Registrér dig selv
+        System.out.print("Indtast dit kaldenavn: ");
+        String kaldenavn = console.readLine();
 
-        // Send DNS forespørgsel via UDP
-        DatagramSocket dnsSocket = new DatagramSocket();
-        InetAddress dnsServer = InetAddress.getByName("localhost");
+        String registrerCmd = "REGISTRER " + kaldenavn;
+        sendUDPMessage(udpSocket, registrerCmd, "localhost", NAME_SERVER_PORT);
+        System.out.println("Du er registreret på navneserveren som: " + kaldenavn);
 
-        byte[] sendData = kaldenavn.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, dnsServer, dnsPort);
-        dnsSocket.send(sendPacket);
+        // 2. Spørg om en anden bruger
+        System.out.print("Hvem vil du forbinde til (kaldenavn)? ");
+        String modtagerNavn = console.readLine();
 
-        // Modtag svar
-        byte[] recvBuf = new byte[256];
-        DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
-        dnsSocket.receive(recvPacket);
-        String ip = new String(recvPacket.getData(), 0, recvPacket.getLength());
+        String connectCmd = "CONNECT " + modtagerNavn;
+        String response = sendUDPMessage(udpSocket, connectCmd, "localhost", NAME_SERVER_PORT);
 
-        dnsSocket.close();
+        if (response.startsWith("CONNECT_IP")) {
+            String[] parts = response.split(" ");
+            String[] ipAndPort = parts[1].split(":");
+            String ip = ipAndPort[0];
+            int port = Integer.parseInt(ipAndPort[1]);
 
-        if (ip.equals("NOT FOUND")) {
-            System.out.println("Kaldenavn ikke fundet på navneserveren.");
-            return;
-        }
+            System.out.println("Forbinder til " + modtagerNavn + " på " + ip + ":" + port);
 
-        System.out.println("DNS resolved " + kaldenavn + " til " + ip);
+            // 3. Opret TCP-chat med den anden klient
+            Socket chatSocket = new Socket(ip, port);
+            System.out.println("Forbundet til klient. Start chat:");
 
-        // Opret TCP forbindelse til TalkServer
-        try (Socket socket = new Socket(ip, chatPort)) {
-            System.out.println("Forbundet til TalkServer på " + ip + ":" + chatPort);
-
-            // Start tråde til at sende og modtage beskeder
-            Thread reciever = new Thread(() -> {
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                    String line;
-                    while ((line = in.readLine()) != null) {
-                        System.out.println("Modtaget: " + line);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Modtagelse afbrudt.");
-                }
-            });
-
-            Thread sender = new Thread(() -> {
-                try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-                    String line;
-                    while ((line = userInput.readLine()) != null) {
-                        out.println(line);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Afsendelse afbrudt.");
-                }
-            });
+            RecieverTråd reciever = new RecieverTråd(chatSocket);
+            SenderTråd sender = new SenderTråd(chatSocket);
 
             reciever.start();
             sender.start();
@@ -69,8 +48,24 @@ public class TalkClientUDP {
             reciever.join();
             sender.join();
 
-        } catch (Exception e) {
-            System.out.println("Kan ikke forbinde til TalkServer: " + e.getMessage());
+        } else {
+            System.out.println("Kunne ikke finde klienten: " + response);
         }
+
+        udpSocket.close();
+    }
+
+    private static String sendUDPMessage(DatagramSocket socket, String message, String host, int port) throws IOException {
+        byte[] buffer = message.getBytes();
+        InetAddress address = InetAddress.getByName(host);
+
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+        socket.send(packet);
+
+        byte[] responseBuffer = new byte[BUFFER_SIZE];
+        DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
+        socket.receive(responsePacket);
+
+        return new String(responsePacket.getData(), 0, responsePacket.getLength()).trim();
     }
 }

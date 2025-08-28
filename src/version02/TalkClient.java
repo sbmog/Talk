@@ -7,7 +7,7 @@ public class TalkClient {
 
     public static void main(String[] args) throws IOException {
 
-        Socket socket = new Socket("10.10.131.25", 12080);
+        Socket socket = new Socket("Localhost", 12080);
 
         RecieverTråd reciever = new RecieverTråd(socket);
         SenderTråd sender = new SenderTråd(socket);
