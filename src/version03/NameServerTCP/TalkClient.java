@@ -5,40 +5,63 @@ import java.net.Socket;
 
 public class TalkClient {
     public static void main(String[] args) throws IOException {
-        BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("Indtast server-navn: ");
-        String serverNavn = console.readLine();
-        int port = 13000;
+        // Forbind til NameServer
+        Socket nameServerSocket = new Socket("localhost", 13000);
+        BufferedReader inFromNameServer = new BufferedReader(new InputStreamReader(nameServerSocket.getInputStream()));
+        DataOutputStream outToNameServer = new DataOutputStream(nameServerSocket.getOutputStream());
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-        Socket dnsSocket = new Socket("Localhost", port);
+        System.out.print("Enter your name to register: ");
+        String name = userInput.readLine();
+        outToNameServer.writeBytes("REGISTRER " + name + "\n");
 
-        DataOutputStream dnsOut = new DataOutputStream(dnsSocket.getOutputStream());
-        BufferedReader dnsIn = new BufferedReader(new InputStreamReader(dnsSocket.getInputStream()));
+        System.out.println("You can now type LIST or CONNECT <name>");
 
-        dnsOut.writeBytes(serverNavn + '\n');
-        String ip = dnsIn.readLine();
-        dnsSocket.close();
+        // Lyt på NameServer indtil vi får et CONNECT_IP
+        while (true) {
+            String command = userInput.readLine();
+            if (command == null || command.isEmpty()) continue;
 
-        System.out.println("DNS resolved " + serverNavn + " til " + ip);
+            if (command.equalsIgnoreCase("LIST") || command.toUpperCase().startsWith("CONNECT")) {
+                outToNameServer.writeBytes(command + "\n");
 
-        port = 12080;
-        Socket socket = new Socket(ip, port);
+                // læs svar fra NameServer
+                String response;
+                while ((response = inFromNameServer.readLine()) != null) {
+                    System.out.println("[NameServer]: " + response);
 
-        System.out.println("Forbundet til anden client. ");
+                    if (response.equals("END_OF_LIST")) {
+                        break;
+                    }
 
-        RecieverTråd reciever = new RecieverTråd(socket);
-        SenderTråd sender = new SenderTråd(socket);
+                    if (response.startsWith("CONNECT_IP")) {
+                        // Vi har fået info om hvem vi skal forbinde til
+                        String ipPort = response.substring("CONNECT_IP".length()).trim();
+                        String[] parts = ipPort.split(":");
+                        String ip = parts[0];
+                        int port = Integer.parseInt(parts[1]);
 
-        reciever.start();
-        sender.start();
+                        System.out.println("Connecting to TalkServer at " + ip + ":" + port);
 
-        try {
-            reciever.join();
-            sender.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+                        // Luk forbindelse til NameServer
+                        nameServerSocket.close();
+
+                        // Opret ny forbindelse til TalkServer
+                        Socket talkSocket = new Socket(ip, port);
+
+                        // Start chat-tråde
+                        new SenderTråd(talkSocket).start();
+                        new RecieverTråd(talkSocket).start();
+
+                        System.out.println("You are now in chat. Type messages to send.");
+                        return; // afslut main, chat kører i tråde
+                    }
+                }
+
+            } else {
+                System.out.println("Invalid command. Use LIST or CONNECT <name>");
+            }
         }
     }
 }
-
