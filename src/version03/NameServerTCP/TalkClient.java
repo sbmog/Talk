@@ -48,7 +48,6 @@
 
                             // Luk forbindelse til NameServer
                             nameServerSocket.close();
-
                             // Opret ny forbindelse til TalkServer
                             Socket talkSocket = new Socket(ip, port);
 

@@ -18,7 +18,8 @@
 
                 while (true) {
                     Socket socket = serverSocket.accept();
-                    new ClientHandler(socket, clients).start();
+                    ClientHandler handler = new ClientHandler(socket, clients);
+                    handler.start();
                 }
             }
         }
