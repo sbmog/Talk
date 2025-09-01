@@ -15,7 +15,7 @@ public class TalkServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(12080);
-        System.out.println("TalkServer running on port 12080...");
+        System.out.println("TalkServer kører...");
 
         // Start tråd så serveren selv kan skrive i chatten
         new Thread(TalkServer::serverInputLoop).start();
@@ -23,7 +23,7 @@ public class TalkServer {
         // Accepter klienter i en uendelig løkke
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Client connected: " + clientSocket.getInetAddress());
+            System.out.println("Klient deltager: " + clientSocket.getInetAddress());
 
             DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
             clientOutputs.add(out);
@@ -61,7 +61,7 @@ public class TalkServer {
                 broadcast("[SERVER]: " + line, null);
             }
         } catch (IOException e) {
-            System.out.println("Server input stopped.");
+            System.out.println("Server input stoppet.");
         }
     }
 

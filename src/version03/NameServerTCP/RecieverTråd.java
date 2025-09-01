@@ -20,7 +20,7 @@ public class RecieverTråd extends Thread {
                 System.out.println(msg);
             }
         } catch (IOException e) {
-            System.out.println("Connection closed");
+            System.out.println("Forbindelsen er lukket" );
         }
     }
 }

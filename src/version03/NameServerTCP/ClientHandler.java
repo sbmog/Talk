@@ -18,21 +18,20 @@ public class ClientHandler extends Thread {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
 
-            out.writeBytes("Welcome! Commands: REGISTRER <name> <port>, LIST, CONNECT <name>\n");
 
             String line;
             while ((line = in.readLine()) != null) {
                 String[] parts = line.split(" ");
 
+
                 if (parts[0].equalsIgnoreCase("REGISTRER") && parts.length == 2) {
-                    String name = parts[1];
-                    String ip = socket.getInetAddress().getHostAddress();
-                    String port = "12080"; // hardcoded talkserver port
-                    clients.put(name, ip + ":" + port);
-                    out.writeBytes("Registered " + name + " -> " + ip + ":" + port + "\n");
+                    String navn = parts[1];
+                    String ipPort = socket.getInetAddress().getHostAddress() + ":12080";
+                    clients.put(navn, ipPort);
 
+                    out.writeBytes("Velkommen " + navn + "! Kommandoer: LISTE, CONNECT <name>\n");
 
-                } else if (parts[0].equalsIgnoreCase("LIST")) {
+                } else if (parts[0].equalsIgnoreCase("LISTE")) {
                     for (Map.Entry<String, String> entry : clients.entrySet()) {
                         out.writeBytes(entry.getKey() + " -> " + entry.getValue() + "\n");
                     }
@@ -44,16 +43,16 @@ public class ClientHandler extends Thread {
                     if (ipPort != null) {
                         out.writeBytes("CONNECT_IP " + ipPort + "\n");
                     } else {
-                        out.writeBytes("No client with name: " + target + "\n");
+                        out.writeBytes("Ingen klient med dette navn: " + target + "\n");
                     }
 
                 } else {
-                    out.writeBytes("Invalid command\n");
+                    out.writeBytes("Forkert kommando\n");
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Client disconnected");
+            System.out.println("Klient forbindelse lukket" );
         }
     }
 }

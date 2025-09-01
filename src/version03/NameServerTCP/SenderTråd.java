@@ -20,7 +20,7 @@ public class SenderTråd extends Thread {
                 outToOther.writeBytes(sentence + '\n');
             }
         } catch (IOException e) {
-            System.out.println("Connection closed");
+            System.out.println("forbindelsen er lukket" );
         }
     }
 }
