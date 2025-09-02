@@ -12,47 +12,89 @@ public class TalkClientUDP {
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
         DatagramSocket udpSocket = new DatagramSocket();
 
-        // 1. Registrér dig selv
-        System.out.print("Indtast dit kaldenavn: ");
-        String kaldenavn = console.readLine();
+        boolean running = true;
+        boolean isRegistered = false;
+        String kaldenavn = null;
 
-        String registrerCmd = "REGISTRER " + kaldenavn;
-        sendUDPMessage(udpSocket, registrerCmd, "localhost", NAME_SERVER_PORT);
-        System.out.println("Du er registreret på navneserveren som: " + kaldenavn);
+        while (running) {
+            System.out.println("\n===== MENU =====");
+            System.out.println("1. REGISTRER kaldenavn");
+            System.out.println("2. LIST (vis registrerede klienter)");
+            System.out.println("3. CONNECT til anden klient");
+            System.out.println("4. Afslut");
+            System.out.print("Vælg (1-4): ");
 
-        // 2. Spørg om en anden bruger
-        System.out.print("Hvem vil du forbinde til (kaldenavn)? ");
-        String modtagerNavn = console.readLine();
+            String valg = console.readLine().trim();
 
-        String connectCmd = "CONNECT " + modtagerNavn;
-        String response = sendUDPMessage(udpSocket, connectCmd, "localhost", NAME_SERVER_PORT);
+            switch (valg) {
+                case "1":  // REGISTRER
+                    System.out.print("Indtast dit kaldenavn: ");
+                    kaldenavn = console.readLine().trim();
+                    if (!kaldenavn.isEmpty()) {
+                        String registrerCmd = "REGISTRER " + kaldenavn;
+                        String regResponse = sendUDPMessage(udpSocket, registrerCmd, "localhost", NAME_SERVER_PORT);
+                        System.out.println(regResponse);
+                        isRegistered = true;
+                    } else {
+                        System.out.println("Kaldenavn kan ikke være tomt.");
+                    }
+                    break;
 
-        if (response.startsWith("CONNECT_IP")) {
-            String[] parts = response.split(" ");
-            String[] ipAndPort = parts[1].split(":");
-            String ip = ipAndPort[0];
-            int port = Integer.parseInt(ipAndPort[1]);
+                case "2":  // LIST
+                    String listResponse = sendUDPMessage(udpSocket, "LIST", "localhost", NAME_SERVER_PORT);
+                    System.out.println("\nRegistrerede klienter:\n" + listResponse);
+                    break;
 
-            System.out.println("Forbinder til " + modtagerNavn + " på " + ip + ":" + port);
+                case "3":  // CONNECT
+                    if (!isRegistered) {
+                        System.out.println("Du skal først registrere dig, før du kan connecte.");
+                        break;
+                    }
 
-            // 3. Opret TCP-chat med den anden klient
-            Socket chatSocket = new Socket(ip, port);
-            System.out.println("Forbundet til klient. Start chat:");
+                    System.out.print("Hvem vil du forbinde til (kaldenavn)? ");
+                    String modtagerNavn = console.readLine().trim();
 
-            RecieverTråd reciever = new RecieverTråd(chatSocket);
-            SenderTråd sender = new SenderTråd(chatSocket);
+                    String connectCmd = "CONNECT " + modtagerNavn;
+                    String response = sendUDPMessage(udpSocket, connectCmd, "localhost", NAME_SERVER_PORT);
 
-            reciever.start();
-            sender.start();
+                    if (response.startsWith("CONNECT_IP")) {
+                        String[] parts = response.split(" ");
+                        String[] ipAndPort = parts[1].split(":");
+                        String ip = ipAndPort[0];
+                        int port = Integer.parseInt(ipAndPort[1]);
 
-            reciever.join();
-            sender.join();
+                        System.out.println("Forbinder til " + modtagerNavn + " på " + ip + ":" + port);
 
-        } else {
-            System.out.println("Kunne ikke finde klienten: " + response);
+                        // Start TCP-chat med anden klient
+                        Socket chatSocket = new Socket(ip, port);
+                        System.out.println("Forbundet til klient. Start chat:");
+
+                        RecieverTråd reciever = new RecieverTråd(chatSocket);
+                        SenderTråd sender = new SenderTråd(chatSocket);
+
+                        reciever.start();
+                        sender.start();
+
+                        reciever.join();
+                        sender.join();
+                        chatSocket.close();
+                    } else {
+                        System.out.println("Kunne ikke finde klienten: " + response);
+                    }
+                    break;
+
+                case "4":  // AFSLUT
+                    System.out.println("Lukker klienten...");
+                    running = false;
+                    break;
+
+                default:
+                    System.out.println("Ugyldigt valg. Indtast et tal fra 1 til 4.");
+            }
         }
 
         udpSocket.close();
+        System.out.println("Klienten er lukket.");
     }
 
     private static String sendUDPMessage(DatagramSocket socket, String message, String host, int port) throws IOException {
