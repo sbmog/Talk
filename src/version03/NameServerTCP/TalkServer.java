@@ -14,7 +14,7 @@ public class TalkServer {
             Collections.synchronizedSet(new HashSet<>());
 
     public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(12080);
+        ServerSocket serverSocket = new ServerSocket(15000);
         System.out.println("TalkServer kører...");
 
         // Start tråd så serveren selv kan skrive i chatten

@@ -26,7 +26,7 @@ public class ClientHandler extends Thread {
 
                 if (parts[0].equalsIgnoreCase("REGISTRER") && parts.length == 2) {
                     String navn = parts[1];
-                    String ipPort = socket.getInetAddress().getHostAddress() + ":12080";
+                    String ipPort = socket.getInetAddress().getHostAddress() + ":15000";
                     clients.put(navn, ipPort);
 
                     out.writeBytes("Velkommen " + navn + "! Kommandoer: LISTE, CONNECT <name>\n");

@@ -7,7 +7,7 @@
         public static void main(String[] args) throws IOException {
 
             // Forbind til NameServer
-            Socket nameServerSocket = new Socket("localhost", 13000);
+            Socket nameServerSocket = new Socket("10.10.139.106", 13000);
             BufferedReader inFromNameServer = new BufferedReader(new InputStreamReader(nameServerSocket.getInputStream()));
             DataOutputStream outToNameServer = new DataOutputStream(nameServerSocket.getOutputStream());
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
