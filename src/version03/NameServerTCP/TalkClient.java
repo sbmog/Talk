@@ -56,10 +56,9 @@
                             new RecieverTråd(talkSocket).start();
 
                             System.out.println("Du er nu i chatrummet. Indtast besked og send.");
-                            return; // afslut main, chat kører i tråde
+                            return;
                         }
                     }
-
                 } else {
                     System.out.println("Forkert kommando: Brug LISTE or CONNECT <navn>");
                 }

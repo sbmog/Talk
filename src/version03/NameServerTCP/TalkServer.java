@@ -37,7 +37,7 @@ public class TalkServer {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             String msg;
             while ((msg = in.readLine()) != null) {
-                // Log på serveren
+
                 System.out.println("[CLIENT " + socket.getInetAddress() + "]: " + msg);
                 // Send til alle andre klienter
                 broadcast(msg, out);
