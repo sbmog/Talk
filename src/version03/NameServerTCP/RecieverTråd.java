@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class RecieverTråd extends Thread {
-    Socket connectionSocket;
+    private final Socket connectionSocket;
 
     public RecieverTråd(Socket connectionSocket) {
         this.connectionSocket = connectionSocket;
@@ -14,13 +14,13 @@ public class RecieverTråd extends Thread {
 
     @Override
     public void run() {
-        try (BufferedReader inFromOther = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));) {
-            String fromServer;
-            while ((fromServer = inFromOther.readLine()) != null) {
-                System.out.println("From other client: " + fromServer);
+        try (BufferedReader inFromOther = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()))) {
+            String msg;
+            while ((msg = inFromOther.readLine()) != null) {
+                System.out.println(msg);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Forbindelsen er lukket" );
         }
     }
 }
